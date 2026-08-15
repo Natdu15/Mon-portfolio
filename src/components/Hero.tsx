@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ChevronDown, Shield, ArrowRight } from 'lucide-react';
 import { profile } from '@/data/portfolio';
 
-const terminalLines = [
+const initialLines = [
   { text: '$ Qui suis-je', delay: 0 },
   { text: profile.name, delay: 600, type: 'output' },
   { text: '$ Mon rôle.txt', delay: 1400 },
@@ -10,24 +10,77 @@ const terminalLines = [
   { text: '$ ./Connexion --status', delay: 2900 },
   { text: 'Connexion établie. Chiffrement : AES-256', delay: 3500, type: 'output' },
   { text: '$ echo "Bienvenue dans mon portfolio"', delay: 4500 },
-  { text: 'Bienvenue dans mon portfolio', delay: 5100, type: 'output' },
+  { text: 'Bienvenue dans mon portfolio. Tapez "help" pour interagir.', delay: 5100, type: 'output' },
 ];
 
 export default function Hero() {
   const [visibleLines, setVisibleLines] = useState<number>(0);
-  const [showCursor, setShowCursor] = useState(true);
+  const [isInteractive, setIsInteractive] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [input, setInput] = useState('');
+  const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Animation automatique du démarrage
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    terminalLines.forEach((_, i) => {
-      timers.push(setTimeout(() => setVisibleLines(i + 1), terminalLines[i].delay));
+    initialLines.forEach((_, i) => {
+      timers.push(
+        setTimeout(() => {
+          setVisibleLines(i + 1);
+          // Une fois la dernière ligne affichée, on active le mode interactif
+          if (i + 1 === initialLines.length) {
+            setIsInteractive(true);
+          }
+        }, initialLines[i].delay)
+      );
     });
-    const cursorTimer = setTimeout(() => setShowCursor(false), 6000);
+
     return () => {
       timers.forEach(clearTimeout);
-      clearTimeout(cursorTimer);
     };
   }, []);
+
+  // Scroll automatique vers le bas du terminal lors de la saisie
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [history, visibleLines]);
+
+  const handleCommand = (cmd: string) => {
+    const trimmed = cmd.trim().toLowerCase();
+    let output = `Commande inconnue : ${trimmed}. Tapez "help" pour voir la liste des commandes.`;
+
+    switch (trimmed) {
+      case 'help':
+        output = 'Commandes disponibles : whoami, projects, contact, clear';
+        break;
+      case 'whoami':
+        output = `${profile.name} - ${profile.role} basé à ${profile.location}.`;
+        break;
+      case 'projects':
+        output = 'Redirection vers la section des projets...';
+        document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'contact':
+        output = `Contactez-moi par email : ${profile.email}`;
+        document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'clear':
+        setHistory([]);
+        return;
+      case 'sudo rm -rf /':
+        output = 'Nice try! Accès refusé 🚨';
+        break;
+    }
+
+    setHistory((prev) => [...prev, `> ${cmd}`, output]);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && input.trim() !== '') {
+      handleCommand(input);
+      setInput('');
+    }
+  };
 
   const scrollToAbout = () => {
     document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' });
@@ -85,27 +138,56 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right: terminal */}
+        {/* Right: interactive terminal */}
         <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <div className="glass-card overflow-hidden neon-border">
             {/* Terminal header */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-bg-800 border-b border-bg-500/50">
+            <div className="flex items-center gap-2 px-4 py-3 bg-bg-800 border-b border-bg-500/55">
               <span className="w-3 h-3 rounded-full bg-danger/80" />
               <span className="w-3 h-3 rounded-full bg-warning/80" />
               <span className="w-3 h-3 rounded-full bg-accent/80" />
-              <span className="ml-2 font-mono text-xs text-slate-500">secure-shell — bash</span>
+              <span className="ml-2 font-mono text-xs text-slate-500">secure-shell — bash (interactif)</span>
             </div>
+            
             {/* Terminal body */}
-            <div className="p-5 font-mono text-sm min-h-[280px]">
-              {terminalLines.slice(0, visibleLines).map((line, i) => (
+            <div className="p-5 font-mono text-sm min-h-[280px] max-h-[320px] overflow-y-auto cursor-text" onClick={() => document.getElementById('terminal-input')?.focus()}>
+              {/* Lignes initiales de boot */}
+              {initialLines.slice(0, visibleLines).map((line, i) => (
                 <div
-                  key={i}
+                  key={`init-${i}`}
                   className={`mb-1.5 ${line.type === 'output' ? 'text-slate-400 pl-1' : 'text-accent'}`}
                 >
                   {line.text}
                 </div>
               ))}
-              {showCursor && <span className="inline-block w-2 h-4 bg-accent animate-blink" />}
+
+              {/* Historique des commandes utilisateur */}
+              {history.map((line, i) => (
+                <div
+                  key={`hist-${i}`}
+                  className={`mb-1.5 ${line.startsWith('>') ? 'text-accent' : 'text-slate-400 pl-1'}`}
+                >
+                  {line}
+                </div>
+              ))}
+
+              {/* Ligne de saisie active (apparaît une fois le boot fini) */}
+              {isInteractive && (
+                <div className="flex items-center mt-2">
+                  <span className="text-accent mr-2">$&gt;</span>
+                  <input
+                    id="terminal-input"
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="bg-transparent border-none outline-none flex-1 text-white font-mono text-sm focus:ring-0"
+                    autoFocus
+                    placeholder="Tapez 'help'..."
+                  />
+                </div>
+              )}
+              <div ref={bottomRef} />
             </div>
           </div>
         </div>
