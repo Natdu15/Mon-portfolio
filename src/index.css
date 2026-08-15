@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-bg-900 text-slate-300 font-sans antialiased;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(0, 255, 157, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(34, 211, 238, 0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-accent/30 text-white;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-800;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-bg-500 rounded-full;
+    border: 2px solid #0d1117;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent/50;
+  }
+}
+
+@layer components {
+  .section-title {
+    @apply font-mono text-sm text-accent mb-2 tracking-widest uppercase;
+  }
+
+  .section-heading {
+    @apply text-3xl md:text-4xl font-bold text-white mb-12;
+  }
+
+  .glass-card {
+    @apply bg-bg-700/60 backdrop-blur-sm border border-bg-500/50 rounded-xl transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply border-accent/40;
+    box-shadow: 0 0 30px rgba(0, 255, 157, 0.08);
+  }
+
+  .neon-text {
+    text-shadow: 0 0 10px rgba(0, 255, 157, 0.5), 0 0 20px rgba(0, 255, 157, 0.3);
+  }
+
+  .neon-border {
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2), inset 0 0 10px rgba(0, 255, 157, 0.05);
+  }
+}
+
+/* Reveal animation classes */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 255, 157, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
