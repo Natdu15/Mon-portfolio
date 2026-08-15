@@ -45,13 +45,14 @@ export default function Hero() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, visibleLines]);
 
-  const handleCommand = (cmd: string) => {
+ const handleCommand = (cmd: string) => {
     const trimmed = cmd.trim().toLowerCase();
     let output = `Commande inconnue : ${trimmed}. Tapez "help" pour voir la liste des commandes.`;
 
     switch (trimmed) {
+      // Commandes pratiques
       case 'help':
-        output = 'Commandes disponibles : whoami, projects, contact, clear';
+        output = 'Commandes : whoami, projects, skills, contact, ctf, clear, matrix, coffee, sudo, secret';
         break;
       case 'whoami':
         output = `${profile.name} - ${profile.role} basé à ${profile.location}.`;
@@ -60,15 +61,35 @@ export default function Hero() {
         output = 'Redirection vers la section des projets...';
         document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' });
         break;
+      case 'skills':
+        output = 'Affichage de l\'arsenal technique (Cybersécurité, Data, Dev)...';
+        document.querySelector('#skills')?.scrollIntoView({ behavior: 'smooth' });
+        break;
       case 'contact':
-        output = `Contactez-moi par email : ${profile.email}`;
+        output = `Envoyez-moi un message à : ${profile.email}`;
         document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'ctf':
+        output = '🏆 TryHackMe Top 1% | Plus de 15 défis et CTF de cybersécurité résolus.';
         break;
       case 'clear':
         setHistory([]);
         return;
-      case 'sudo rm -rf /':
-        output = 'Nice try! Accès refusé 🚨';
+
+      // Commandes secrètes / Fun
+      case 'matrix':
+        output = 'Wake up, Neo... Suivez le lapin blanc 🐇 (ou restez sur ce portfolio).';
+        break;
+      case 'coffee':
+        output = '☕ Erreur 418 : Je suis une théière. Conversion de café en code sécurisé en cours...';
+        break;
+      case 'sudo':
+      case 'su':
+        output = '🔒 Tentative d\'élévation de privilèges root... Accès refusé ! Nice try, hacker.';
+        break;
+      case 'secret':
+      case 'easteregg':
+        output = '🎉 Bien joué ! Vous avez trouvé une zone cachée. Votre curiosité technique est un atout en cybersécurité.';
         break;
     }
 
